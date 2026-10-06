@@ -1,0 +1,28 @@
+---
+name: Manual Run
+
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: "Where to deploy"
+                required: true
+                default: staging
+                type: choice
+                options:
+                    - staging
+                    - production
+            debug:
+                description: "Print extra info"
+                required: false
+                default: false
+                type: boolean
+
+jobs:
+    show:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Show inputs
+              run: |
+                  echo "Environment: ${{ inputs.environment }}"
+                  echo "Debug: ${{ inputs.debug }}"
