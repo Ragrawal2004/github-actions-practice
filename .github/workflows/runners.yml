@@ -1,0 +1,32 @@
+---
+name: Runner Inspect
+
+on: workflow_dispatch
+
+jobs:
+    inspect:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Who and where
+              run: |
+                  echo "OS: ${{ runner.os }}"
+                  echo "Arch: ${{ runner.arch }}"
+                  echo "Hostname: $(hostname)"
+                  echo "User: $(whoami)"
+
+            - name: Installed tools
+              run: |
+                  for tool in git node python python3 docker; do
+                    if command -v "$tool" > /dev/null; then
+                      echo "$tool: $("$tool" --version 2>&1 | head -n 1)"
+                    else
+                      echo "$tool: NOT INSTALLED"
+                    fi
+                  done
