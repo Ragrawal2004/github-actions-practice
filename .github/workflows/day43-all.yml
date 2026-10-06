@@ -1,0 +1,136 @@
+---
+name: Day 43 All Concepts
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+        inputs:
+            fail_test:
+                description: "Make the test job fail on purpose"
+                type: boolean
+                default: false
+
+permissions:
+    contents: read
+
+# Workflow-level variable: visible to every job and step
+env:
+    APP_NAME: myapp
+
+jobs:
+    # ---------- build: variables, context, outputs, event conditions ----------
+    build:
+        runs-on: ubuntu-latest
+        # Job-level variable: visible to every step in this job
+        env:
+            ENVIRONMENT: staging
+        # Job outputs: the only way to hand values to later jobs
+        outputs:
+            build_date: ${{ steps.meta.outputs.date }}
+            short_sha: ${{ steps.meta.outputs.short_sha }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Create outputs
+              id: meta
+              run: |
+                  echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
+                  echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+            - name: Show the three variable levels
+              # Step-level variable: visible only in this step
+              env:
+                  VERSION: "1.0.0"
+              run: |
+                  echo "App: $APP_NAME"
+                  echo "Environment: $ENVIRONMENT"
+                  echo "Version: $VERSION"
+
+            - name: Show GitHub context values
+              run: |
+                  echo "Commit SHA: ${{ github.sha }}"
+                  echo "Actor: ${{ github.actor }}"
+                  echo "Ref: ${{ github.ref }}"
+                  echo "Event: ${{ github.event_name }}"
+
+            - name: Runs on push only
+              if: github.event_name == 'push'
+              run: echo "This was a push event"
+
+            - name: Runs on pull requests only
+              if: github.event_name == 'pull_request'
+              run: echo "This was a pull request event"
+
+            - name: Runs on the main branch only
+              if: github.ref == 'refs/heads/main'
+              run: echo "We are on main"
+
+    # ---------- lint: continue-on-error and checking a step's outcome ----------
+    lint:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Optional style check (allowed to fail)
+              id: style
+              continue-on-error: true
+              run: |
+                  echo "Pretending the style check found problems"
+                  exit 1
+
+            - name: Report the style check result
+              if: steps.style.outcome == 'failure'
+              run: echo "Style check failed, but continue-on-error kept the job green"
+
+            - name: Runs even when an earlier step failed
+              if: always()
+              run: echo "always() steps run no matter what"
+
+    # ---------- test: reads an output, can fail on purpose ----------
+    test:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Read outputs from the build job
+              run: |
+                  echo "Build date: ${{ needs.build.outputs.build_date }}"
+                  echo "Short SHA: ${{ needs.build.outputs.short_sha }}"
+
+            - name: Fail on request
+              if: inputs.fail_test == true
+              run: exit 1
+
+            - name: Runs only if an earlier step failed
+              if: failure()
+              run: echo "A previous step failed, so this cleanup step runs"
+
+    # ---------- summary: waits for both parallel jobs, even if one failed ----------
+    summary:
+        needs: [lint, test]
+        if: always()
+        runs-on: ubuntu-latest
+        env:
+            IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Print the summary
+              run: |
+                  echo "Branch: ${{ github.head_ref || github.ref_name }}"
+                  echo "Is main branch: $IS_MAIN"
+                  echo "Commit message: $(git log -1 --format=%s)"
+                  echo "lint result: ${{ needs.lint.result }}"
+                  echo "test result: ${{ needs.test.result }}"
+
+    # ---------- deploy: only after success, only off pull requests, only on main ----------
+    deploy:
+        needs: [lint, test]
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy
+              run: echo "Deploying ${{ env.APP_NAME }} from main"
