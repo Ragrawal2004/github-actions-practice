@@ -4,26 +4,36 @@ name: Hello Workflow
 on: push
 
 jobs:
-    greet:
-        runs-on: ubuntu-latest
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      # uses: runs a packaged action. Without this the runner has no code.
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      # run: runs a shell command on the runner
+      - name: Say hello
+        run: echo "Hello from GitHub Actions!"
 
-            - name: Say hello
-              run: echo "Hello from GitHub Actions!"
+      # run: | keeps each line as a separate command (Day 38 literal block)
+      - name: Show date and OS
+        run: |
+          echo "Date: $(date)"
+          echo "Runner OS: ${{ runner.os }}"
+          uname -a
 
-            - name: Show date and OS
-              run: |
-                  echo "Date: $(date)"
-                  echo "Runner OS: ${{ runner.os }}"
-                  uname -a
+      # ${{ }} is filled in by GitHub before the shell starts
+      - name: Show branch
+        run: echo "Branch is ${{ github.ref_name }}"
 
-            - name: Show branch
-              run: echo "Branch is ${{ github.ref_name }}"
+      - name: More context
+        run: |
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
 
-            - name: List files
-              run: |
-                  pwd
-                  ls -la
+      # After checkout this shows .git, .github and README.md
+      - name: List files
+        run: |
+          pwd
+          ls -la
