@@ -6,6 +6,21 @@ on: push
 jobs:
     greet:
         runs-on: ubuntu-latest
+
         steps:
             - name: Say hello
               run: echo "Hello from GitHub Actions!"
+
+            - name: Show date and OS
+              run: |
+                  echo "Date: $(date)"
+                  echo "Runner OS: ${{ runner.os }}"
+                  uname -a
+
+            - name: Show branch
+              run: echo "Branch is ${{ github.ref_name }}"
+
+            - name: List files
+              run: |
+                  pwd
+                  ls -la
