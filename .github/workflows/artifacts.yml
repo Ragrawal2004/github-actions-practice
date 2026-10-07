@@ -1,0 +1,36 @@
+---
+name: Artifacts Demo
+
+on: workflow_dispatch
+
+jobs:
+    generate:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create a report
+              run: |
+                  mkdir -p output
+                  echo "Report generated at: $(date)" > output/report.txt
+                  echo "Commit: ${{ github.sha }}" >> output/report.txt
+
+            - name: Upload the report
+              uses: actions/upload-artifact@v7
+              with:
+                  name: my-report
+                  path: output/
+                  retention-days: 1
+
+    read:
+        needs: generate
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download the report
+              uses: actions/download-artifact@v8
+              with:
+                  name: my-report
+                  path: downloaded/
+
+            - name: Read it
+              run: |
+                  ls -la downloaded/
+                  cat downloaded/report.txt
