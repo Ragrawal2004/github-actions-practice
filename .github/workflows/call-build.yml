@@ -1,0 +1,14 @@
+---
+name: Call Build
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  build-myapp:
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      app_name: myapp
+      environment: production

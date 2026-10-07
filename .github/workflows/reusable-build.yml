@@ -1,0 +1,31 @@
+---
+name: Reusable Build
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: "Name of the app being built"
+        required: true
+        type: string
+      environment:
+        description: "Target environment"
+        required: false
+        type: string
+        default: staging
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Show what we were asked to build
+        run: |
+          echo "App: ${{ inputs.app_name }}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Commit: ${{ github.sha }}"
