@@ -17,6 +17,10 @@ on:
       docker_token:
         description: "Docker Hub access token"
         required: true
+    outputs:
+      build_version:
+        description: "Version label for this build"
+        value: ${{ jobs.build.outputs.build_version }}
 
 permissions:
   contents: read
@@ -24,6 +28,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      build_version: ${{ steps.version.outputs.build_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -44,3 +50,8 @@ jobs:
             echo "docker_token is MISSING"
             exit 1
           fi
+
+      - name: Create the build version
+        id: version
+        run: |
+          echo "build_version=v1.0-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
