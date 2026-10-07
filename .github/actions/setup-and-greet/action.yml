@@ -35,12 +35,15 @@ runs:
 
     - name: Print the greeting
       shell: bash
-      run: echo "${{ steps.build.outputs.greeting }}"
+      run: |
+        echo "${{ steps.build.outputs.greeting }}"
 
     - name: Print the date
       shell: bash
-      run: echo "Date: $(date)"
+      run: |
+        echo "Date: $(date)"
 
     - name: Print the OS
       shell: bash
-      run: echo "Runner OS: ${{ runner.os }}"
+      run: |
+        echo "Runner OS: ${{ runner.os }}"
