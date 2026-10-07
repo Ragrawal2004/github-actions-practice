@@ -1,0 +1,48 @@
+---
+name: Docker Publish
+
+on:
+    push:
+        paths: # only run when the app or this workflow changes
+            - "docker-app/**"
+            - ".github/workflows/docker-publish.yml"
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+env:
+    IMAGE_NAME: rounak810/myapp # your Docker ID is public, so it's fine here
+
+jobs:
+    docker:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            # Day 43 outputs: build the short commit SHA used in the tag
+            - name: Compute short SHA
+              id: vars
+              run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v4
+
+            # Log in only on main: feature branches never need the credentials
+            - name: Log in to Docker Hub
+              if: github.ref == 'refs/heads/main'
+              uses: docker/login-action@v4
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_TOKEN }}
+
+            # push is true on main and false everywhere else (build only)
+            - name: Build, and push on main
+              uses: docker/build-push-action@v7
+              with:
+                  context: ./docker-app
+                  push: ${{ github.ref == 'refs/heads/main' }}
+                  tags: |
+                      ${{ env.IMAGE_NAME }}:latest
+                      ${{ env.IMAGE_NAME }}:sha-${{ steps.vars.outputs.short_sha }}
