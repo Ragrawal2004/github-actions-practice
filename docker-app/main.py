@@ -5,7 +5,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello from my CI/CD app"}
+    return {"message": "Hello from a feature branch"}
 
 
 @app.get("/health")
