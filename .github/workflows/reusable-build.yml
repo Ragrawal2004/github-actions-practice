@@ -13,6 +13,10 @@ on:
         required: false
         type: string
         default: staging
+    secrets:
+      docker_token:
+        description: "Docker Hub access token"
+        required: true
 
 permissions:
   contents: read
@@ -29,3 +33,14 @@ jobs:
           echo "App: ${{ inputs.app_name }}"
           echo "Environment: ${{ inputs.environment }}"
           echo "Commit: ${{ github.sha }}"
+
+      - name: Check the secret arrived (without printing it)
+        env:
+          DOCKER_TOKEN: ${{ secrets.docker_token }}
+        run: |
+          if [ -n "$DOCKER_TOKEN" ]; then
+            echo "docker_token was passed in"
+          else
+            echo "docker_token is MISSING"
+            exit 1
+          fi

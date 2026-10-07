@@ -12,3 +12,5 @@ jobs:
     with:
       app_name: myapp
       environment: production
+    secrets:
+      docker_token: ${{ secrets.DOCKER_TOKEN }}
