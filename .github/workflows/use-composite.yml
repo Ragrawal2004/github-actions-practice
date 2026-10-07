@@ -1,0 +1,24 @@
+---
+name: Use Composite Action
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Greet
+        id: greeter
+        uses: ./.github/actions/setup-and-greet
+        with:
+          name: Rounak
+          language: hindi
+
+      - name: Show the action's output
+        run: echo "The action returned ${{ steps.greeter.outputs.greeting }}"

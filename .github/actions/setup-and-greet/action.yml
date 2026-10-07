@@ -1,0 +1,46 @@
+---
+name: Setup and Greet
+description: Prints a greeting, the date and the OS
+
+inputs:
+  name:
+    description: "Who to greet"
+    required: true
+  language:
+    description: "english, hindi or spanish"
+    required: false
+    default: english
+
+outputs:
+  greeting:
+    description: "The greeting text that was printed"
+    value: ${{ steps.build.outputs.greeting }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build the greeting
+      id: build
+      shell: bash
+      env:
+        NAME: ${{ inputs.name }}
+        LANGUAGE: ${{ inputs.language }}
+      run: |
+        case "$LANGUAGE" in
+          hindi)   WORD="Namaste" ;;
+          spanish) WORD="Hola" ;;
+          *)       WORD="Hello" ;;
+        esac
+        echo "greeting=$WORD, $NAME" >> "$GITHUB_OUTPUT"
+
+    - name: Print the greeting
+      shell: bash
+      run: echo "${{ steps.build.outputs.greeting }}"
+
+    - name: Print the date
+      shell: bash
+      run: echo "Date: $(date)"
+
+    - name: Print the OS
+      shell: bash
+      run: echo "Runner OS: ${{ runner.os }}"
